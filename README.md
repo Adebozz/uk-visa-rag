@@ -69,12 +69,23 @@ and token spend. Reports are saved to `evals/results/` so retrieval
 experiments (chunk sizes, fusion weights, rerankers) can be compared
 regression-style.
 
+Current results (100 retrieval questions, 25 judged answers):
+
 | Metric | Value |
 |---|---|
-| Retrieval hit@6 | _run `make evals` and fill in_ |
-| MRR | _…_ |
-| Faithfulness (mean /5) | _…_ |
-| Citation coverage | _…_ |
+| Retrieval hit@1 / hit@3 / hit@6 | 0.53 / 0.75 / **0.92** |
+| MRR | 0.667 |
+| Faithfulness (mean /5) | **4.68** — 88% of answers scored a perfect 5 |
+| Relevance (mean /5) | 4.92 |
+| Citation coverage | 0.73 |
+| Refusals on answerable questions | 0% |
+| Latency p50 | 4.7s |
+
+Reading: the answer layer is very strong (no hallucinated claims scored below
+3), and hit@6 = 0.92 means the LLM almost always sees the right source. The
+clearest improvement axis is **early precision** (hit@1 = 0.53) — a
+cross-encoder reranker between fusion and the LLM is the planned experiment,
+and the eval suite exists precisely to measure whether it pays for its latency.
 
 ## Roadmap
 

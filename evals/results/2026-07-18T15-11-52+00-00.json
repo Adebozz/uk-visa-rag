@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-07-18T15:11:52+00:00",
+  "retrieval": {
+    "n_questions": 100,
+    "hit@1": 0.53,
+    "hit@3": 0.75,
+    "hit@6": 0.92,
+    "mrr": 0.667
+  },
+  "answers": {
+    "n_answered": 25,
+    "faithfulness_mean": 4.68,
+    "faithfulness_pct_5": 0.88,
+    "relevance_mean": 4.92,
+    "citation_coverage_mean": 0.733,
+    "refusal_rate": 0.0,
+    "judge_failures": 0,
+    "latency_p50_s": 4.65,
+    "tokens_in": 25106,
+    "tokens_out": 5019
+  }
+}

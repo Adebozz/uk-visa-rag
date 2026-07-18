@@ -85,12 +85,13 @@ def main() -> None:
     # Sample spread across documents: proportional but at least 1 per doc.
     eligible = chunks[chunks["text"].str.len() > 300]
     rng = random.Random(args.seed)
+    # Proportional sample per document (at least 1 chunk each), version-proof.
+    parts = []
+    for _, group in eligible.groupby("doc_title"):
+        k = min(len(group), max(1, round(args.n * len(group) / len(eligible))))
+        parts.append(group.sample(k, random_state=args.seed))
     sampled = (
-        eligible.groupby("doc_title", group_keys=False)
-        .apply(lambda g: g.sample(min(len(g), max(1, round(args.n * len(g) / len(eligible)))),
-                                  random_state=args.seed))
-        .sample(frac=1.0, random_state=args.seed)
-        .head(args.n)
+        pd.concat(parts).sample(frac=1.0, random_state=args.seed).head(args.n)
     )
     logger.info("Generating %d QA pairs across %d documents...",
                 len(sampled), sampled["doc_title"].nunique())
