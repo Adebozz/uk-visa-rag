@@ -24,5 +24,11 @@ serve:
 chat:
 	streamlit run app/chat.py
 
+eval-set:
+	python -m visa_rag.evals.generate --n 100
+
 evals:
 	python -m visa_rag.evals.run
+
+evals-full:
+	python -m visa_rag.evals.run --answers 25

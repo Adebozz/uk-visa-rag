@@ -50,9 +50,35 @@ make ask Q="How much does a Skilled Worker visa cost?"
 make test
 ```
 
+## Evaluation
+
+"Is the RAG any good?" is answered with numbers, not vibes:
+
+```bash
+make eval-set     # Claude generates 100 QA pairs from sampled chunks (~£0.50)
+make evals        # retrieval metrics on all pairs - free, seconds
+make evals-full   # + LLM-judged answer quality on 25 questions (~£1)
+```
+
+Because every generated question is traceable to its source chunk, retrieval
+is scored exactly: **hit@1/3/6** (did the true chunk make the top k?) and
+**MRR**. Answer quality uses Claude-as-judge for **faithfulness** (every claim
+supported by sources?) and **relevance**, plus deterministic **citation
+coverage** (fraction of sentences citing a source), refusal rate, latency,
+and token spend. Reports are saved to `evals/results/` so retrieval
+experiments (chunk sizes, fusion weights, rerankers) can be compared
+regression-style.
+
+| Metric | Value |
+|---|---|
+| Retrieval hit@6 | _run `make evals` and fill in_ |
+| MRR | _…_ |
+| Faithfulness (mean /5) | _…_ |
+| Citation coverage | _…_ |
+
 ## Roadmap
 
 - [x] Phase 1 — ingestion, hybrid retrieval, cited answers with guardrails
-- [ ] Phase 2 — evaluation suite: 100+ QA pairs, retrieval + faithfulness metrics
+- [x] Phase 2 — evaluation suite: 100+ QA pairs, retrieval + faithfulness metrics
 - [ ] Phase 3 — FastAPI service + Streamlit chat UI
 - [ ] Phase 4 — deploy + retrieval experiments write-up (chunking/fusion ablations)
