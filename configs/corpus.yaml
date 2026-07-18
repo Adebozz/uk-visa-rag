@@ -1,0 +1,39 @@
+# gov.uk content paths to ingest (visa & immigration corpus).
+# Each is fetched from https://www.gov.uk/api/content/<path>
+pages:
+  # Work visas
+  - skilled-worker-visa
+  - health-care-worker-visa
+  - graduate-visa
+  - global-talent
+  - senior-executive-visa       # Expansion Worker etc. resolve via API redirects
+  - temporary-worker-charity-worker-visa
+  - seasonal-worker-visa
+  - uk-ancestry-visa
+  - high-potential-individual-visa
+  - scale-up-worker-visa
+  - innovator-founder-visa
+  # Study
+  - student-visa
+  - child-study-visa
+  - short-term-study-visa
+  # Family
+  - uk-family-visa
+  # Visit
+  - standard-visitor
+  - marriage-visitor-visa
+  # Settlement & citizenship
+  - indefinite-leave-to-remain
+  - apply-citizenship-indefinite-leave-to-remain
+  - british-citizenship
+  - apply-citizenship-spouse
+  # General processes
+  - apply-to-come-to-the-uk
+  - biometric-residence-permits
+  - update-uk-visas-immigration-account-details
+  - visa-fees
+  - healthcare-immigration-application
+  - prove-right-to-work
+  - view-prove-immigration-status
+  - check-uk-visa
+  - transfer-visa

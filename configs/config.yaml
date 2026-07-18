@@ -1,0 +1,20 @@
+ingestion:
+  api_base: https://www.gov.uk/api/content
+  raw_dir: data/raw
+  chunks_path: data/chunks.parquet
+  max_chunk_chars: 1400        # ~350 tokens
+  overlap_chars: 200
+
+embedding:
+  model_name: BAAI/bge-small-en-v1.5   # 133MB, strong retrieval quality for its size
+  embeddings_path: data/embeddings.npy
+
+retrieval:
+  top_k: 6            # chunks handed to the LLM
+  candidates_k: 20    # per retriever, before fusion
+  rrf_k: 60           # reciprocal-rank-fusion constant
+
+llm:
+  model: claude-sonnet-4-5
+  max_tokens: 1024
+  min_retrieval_score: 0.02   # below this, refuse instead of guessing

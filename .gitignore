@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+dist/
+
+# Secrets
+.env
+
+# Data & indexes (rebuilt via `make ingest` / `make index`)
+data/
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
