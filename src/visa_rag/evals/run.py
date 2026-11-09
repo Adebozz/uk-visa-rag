@@ -33,23 +33,35 @@ def load_eval_set(path: str) -> list[dict]:
     return [json.loads(line) for line in lines]
 
 
-def eval_retrieval(pairs: list[dict], retriever) -> dict:
-    hits1 = hits3 = hits6 = 0
-    rranks = []
+def search_all(pairs: list[dict], retriever) -> tuple[list[list[str]], list[float]]:
+    """Retrieved chunk ids and search latency (ms) for every question."""
+    results, latencies = [], []
     for p in pairs:
-        ids = [c.chunk_id for c in retriever.search(p["question"])]
-        hits1 += hit_at_k(ids, p["source_chunk_id"], 1)
-        hits3 += hit_at_k(ids, p["source_chunk_id"], 3)
-        hits6 += hit_at_k(ids, p["source_chunk_id"], 6)
-        rranks.append(reciprocal_rank(ids, p["source_chunk_id"]))
+        start = time.perf_counter()
+        results.append([c.chunk_id for c in retriever.search(p["question"])])
+        latencies.append((time.perf_counter() - start) * 1000)
+    return results, latencies
+
+
+def summarise_retrieval(
+    pairs: list[dict], results: list[list[str]], latencies: list[float]
+) -> dict:
+    rows = list(zip(results, (p["source_chunk_id"] for p in pairs), strict=True))
     n = len(pairs)
+    hits = {k: sum(hit_at_k(ids, s, k) for ids, s in rows) for k in (1, 3, 6)}
     return {
         "n_questions": n,
-        "hit@1": round(hits1 / n, 3),
-        "hit@3": round(hits3 / n, 3),
-        "hit@6": round(hits6 / n, 3),
-        "mrr": round(sum(rranks) / n, 3),
+        "hit@1": round(hits[1] / n, 3),
+        "hit@3": round(hits[3] / n, 3),
+        "hit@6": round(hits[6] / n, 3),
+        "mrr": round(sum(reciprocal_rank(ids, s) for ids, s in rows) / n, 3),
+        "latency_p50_ms": round(statistics.median(latencies), 1),
+        "latency_p95_ms": round(statistics.quantiles(latencies, n=20)[18], 1),
     }
+
+
+def eval_retrieval(pairs: list[dict], retriever) -> dict:
+    return summarise_retrieval(pairs, *search_all(pairs, retriever))
 
 
 def eval_answers(pairs: list[dict], retriever, cfg, n: int) -> dict:

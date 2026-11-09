@@ -1,4 +1,4 @@
-.PHONY: install lint test ingest index ask serve chat evals
+.PHONY: install lint test ingest index ask serve chat evals sweep
 
 install:
 	pip install -e ".[dev]"
@@ -32,3 +32,6 @@ evals:
 
 evals-full:
 	python -m visa_rag.evals.run --answers 25
+
+sweep:
+	python -m visa_rag.evals.sweep

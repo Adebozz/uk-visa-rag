@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-11-09T21:10:19+00:00",
+  "retrieval": {
+    "n_questions": 100,
+    "hit@1": 0.74,
+    "hit@3": 0.95,
+    "hit@6": 0.97,
+    "mrr": 0.843,
+    "latency_p50_ms": 106.8,
+    "latency_p95_ms": 147.5
+  }
+}

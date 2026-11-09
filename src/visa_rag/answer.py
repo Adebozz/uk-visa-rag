@@ -70,7 +70,7 @@ def answer_question(
     chunks = retriever.search(question)
 
     # Guardrail 1: retrieval confidence gate
-    if not chunks or chunks[0].score < min_retrieval_score:
+    if not chunks or chunks[0].confidence < min_retrieval_score:
         return Answer(
             question=question, refused=True, sources=chunks,
             text=("I couldn't find this in the gov.uk visa guidance I have "

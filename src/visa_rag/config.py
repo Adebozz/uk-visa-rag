@@ -29,6 +29,8 @@ class RetrievalConfig:
     top_k: int = 6
     candidates_k: int = 20
     rrf_k: int = 60
+    reranker_model: str | None = None   # None keeps the plain RRF order
+    rerank_candidates: int = 30         # fused results the reranker scores
 
 
 @dataclass

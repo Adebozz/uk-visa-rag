@@ -39,6 +39,7 @@ class RetrievedChunk:
     url: str
     updated_at: str
     score: float
+    confidence: float = 0.0   # best fused score for the query, whatever the final order
 
 
 class HybridRetriever:
@@ -49,6 +50,7 @@ class HybridRetriever:
         embed_model,               # SentenceTransformer (injected: easy to fake in tests)
         cfg: RetrievalConfig,
         query_prefix: str = "Represent this sentence for searching relevant passages: ",
+        reranker=None,             # CrossEncoder (injected: easy to fake in tests)
     ):
         from rank_bm25 import BM25Okapi
 
@@ -58,6 +60,7 @@ class HybridRetriever:
         self.model = embed_model
         self.cfg = cfg
         self.query_prefix = query_prefix  # BGE models need this for queries
+        self.reranker = reranker
         corpus_tokens = [
             tokenize(f"{r.doc_title} {r.section} {r.text}")
             for r in self.chunks.itertuples()
@@ -75,6 +78,20 @@ class HybridRetriever:
         scores = self.bm25.get_scores(tokenize(query))
         return list(np.argsort(-scores)[:k])
 
+    # --- reranking ---
+
+    def _rerank(
+        self, query: str, candidates: list[tuple[int, float]]
+    ) -> list[tuple[int, float]]:
+        """Reorder fused candidates with a cross-encoder, keeping their RRF scores."""
+        pairs = []
+        for idx, _ in candidates:
+            row = self.chunks.iloc[idx]
+            pairs.append((query, f"{row.doc_title} - {row.section}\n{row.text}"))
+        scores = self.reranker.predict(pairs, show_progress_bar=False)
+        order = np.argsort(-np.asarray(scores), kind="stable")
+        return [candidates[i] for i in order]
+
     # --- fusion ---
 
     def search(self, query: str) -> list[RetrievedChunk]:
@@ -85,12 +102,17 @@ class HybridRetriever:
             for rank, idx in enumerate(ranking):
                 rrf[idx] = rrf.get(idx, 0.0) + 1.0 / (self.cfg.rrf_k + rank + 1)
 
-        top = sorted(rrf.items(), key=lambda kv: -kv[1])[: self.cfg.top_k]
+        fused = sorted(rrf.items(), key=lambda kv: -kv[1])
+        confidence = fused[0][1] if fused else 0.0
+        if self.reranker is not None:
+            fused = self._rerank(query, fused[: self.cfg.rerank_candidates])
+
+        top = fused[: self.cfg.top_k]
         return [
             RetrievedChunk(
                 chunk_id=row.chunk_id, text=row.text, doc_title=row.doc_title,
                 section=row.section, heading=row.heading, url=row.url,
-                updated_at=row.updated_at, score=score,
+                updated_at=row.updated_at, score=score, confidence=confidence,
             )
             for idx, score in top
             for row in [self.chunks.iloc[idx]]
@@ -107,4 +129,15 @@ def load_retriever(config_path: str = "configs/config.yaml") -> HybridRetriever:
     chunks = pd.read_parquet(cfg.ingestion.chunks_path)
     embeddings = np.load(cfg.embedding.embeddings_path)
     model = SentenceTransformer(cfg.embedding.model_name)
-    return HybridRetriever(chunks, embeddings, model, cfg.retrieval)
+    return HybridRetriever(
+        chunks, embeddings, model, cfg.retrieval,
+        reranker=load_reranker(cfg.retrieval.reranker_model),
+    )
+
+
+def load_reranker(model_name: str | None):
+    if model_name is None:
+        return None
+    from sentence_transformers import CrossEncoder
+
+    return CrossEncoder(model_name, device="cpu")  # CPU matches the deployment target
