@@ -1,3 +1,5 @@
+import zlib
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -14,7 +16,7 @@ class FakeEmbedder:
         for t in texts:
             v = np.zeros(8)
             for tok in tokenize(t):
-                v[hash(tok) % 8] += 1.0
+                v[zlib.crc32(tok.encode()) % 8] += 1.0  # hash() differs between runs
             n = np.linalg.norm(v)
             out.append(v / n if n else v)
         return np.array(out)
